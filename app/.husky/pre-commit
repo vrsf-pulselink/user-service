@@ -1,0 +1,4 @@
+[ -n "$CI" ] && exit 0
+
+cd app
+pnpm git:pre-commit

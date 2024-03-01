@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+
+    sample-app-api:
+        image: vertisan/sample-app-api:latest
+        environment:
+            - APP_ENV=${APP_ENV:-prod}
+            - NODE_ENV=production
+        networks:
+            - sample-app
+
+    sample-app-db:
+        image: postgres:14.9
+        environment:
+            - PGDATA=/var/lib/postgresql/data/pgdata
+            - POSTGRES_DB=${DATABASE_NAME}
+            - POSTGRES_USER=${DATABASE_USER}
+            - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+        volumes:
+            - sample-db-data:/var/lib/postgresql/data/pgdata
+        networks:
+            - sample-app
+
+volumes:
+    sample-db-data: {}
+
+networks:
+    sample-app: {}

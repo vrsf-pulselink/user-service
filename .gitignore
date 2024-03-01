@@ -1,0 +1,25 @@
+# Generic
+.DS_Store
+.pnpm-store
+
+# IDEs
+.idea/
+.vscode/
+!.vscode/settings.json
+
+# Project
+.env*
+!.env.dist
+!.env.test
+docker/docker-compose.*.yml
+!docker/docker-compose.dev.yml
+!docker/docker-compose.launch.yml
+!docker/docker-compose.test.yml
+!docker/docker-compose.standalone.yml
+!.gitkeep
+
+# App
+junit.xml
+.ledo-mode
+coverage*
+.test-reports

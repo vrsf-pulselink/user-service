@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+
+    sample-app-api:
+        build:
+            context: ../
+            dockerfile: Dockerfile
+            target: development
+        env_file: ../.env
+        environment:
+            - APP_ENV=dev
+            - NODE_ENV=development
+        ports:
+            - "8030:80"
+        volumes:
+            - ../app:/var/www
+            - ../docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+            - /var/www/node_modules
+            - /var/www/dist
+            - /var/www/.pnpm-store
+
+    sample-app-db-browser:
+        image: dbgate/dbgate:latest
+        env_file: ../.env
+        environment:
+            CONNECTIONS: db
+            LABEL_db: Postgres
+            SERVER_db: ${DATABASE_HOST}
+            USER_db: ${DATABASE_USER}
+            PASSWORD_db: ${DATABASE_PASSWORD}
+            PORT_db: ${DATABASE_PORT}
+            ENGINE_db: postgres@dbgate-plugin-postgres
+        ports:
+            - "8031:3000"
+        networks:
+            - sample-app
