@@ -6,5 +6,4 @@ import { GetHealthcheckStatusUseCase } from "@app/context/healthcheck/use-case";
   controllers: [HealthcheckController],
   providers: [GetHealthcheckStatusUseCase],
 })
-export class HealthcheckModule {
-}
+export class HealthcheckModule {}

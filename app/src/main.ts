@@ -10,7 +10,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
       strategy: "exposeAll",
-    }),
+    })
   );
 
   // App.useGlobalPipes(

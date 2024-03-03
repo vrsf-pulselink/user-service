@@ -9,8 +9,7 @@ describe("[Healthcheck] HealthcheckController (e2e)", () => {
   beforeAll(async () => {
     const appModule: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .compile();
+    }).compile();
 
     app = appModule.createNestApplication();
     await app.init();
@@ -22,9 +21,7 @@ describe("[Healthcheck] HealthcheckController (e2e)", () => {
   describe("/_healthcheck", () => {
     describe("GET /_healthcheck", () => {
       it("should respond as healthy", async () => {
-        await request(app.getHttpServer())
-          .get("/_healthcheck")
-          .expect(200);
+        await request(app.getHttpServer()).get("/_healthcheck").expect(200);
       });
     });
   });
