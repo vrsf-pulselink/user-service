@@ -5,7 +5,7 @@ export HUSKY=0
 
 #################### Dependencies
 
-waitfor tcp://${DATABASE_HOST}:${DATABASE_PORT}
+#waitfor tcp://${DATABASE_HOST}:${DATABASE_PORT}
 
 #################### Project init
 
