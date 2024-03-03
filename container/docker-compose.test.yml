@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+
+    user-svc-api:
+        build:
+            context: ../
+            dockerfile: Dockerfile
+            target: packer
+        env_file: ../.env
+        environment:
+            - APP_ENV=test
+            - NODE_ENV=test
+        entrypoint: [ "test-entrypoint.sh" ]
+        volumes:
+            - ../.test-reports:/var/www/.test-reports

@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+
+    user-svc-api:
+        image: vertisan/pulselink-user-service:latest
+        environment:
+            - APP_ENV=${APP_ENV:-prod}
+            - NODE_ENV=production
+        networks:
+            - pulselink
+
+networks:
+    pulselink:
+        name: pulselink
+        external: true

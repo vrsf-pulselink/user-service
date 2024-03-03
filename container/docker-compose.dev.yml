@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
 
-    sample-app-api:
+    user-svc-api:
         build:
             context: ../
             dockerfile: Dockerfile
@@ -14,13 +14,27 @@ services:
         ports:
             - "8030:80"
         volumes:
-            - ../app:/var/www
-            - ../docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+            - $PWD/../app:/var/www
+            - ../container/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
             - /var/www/node_modules
-            - /var/www/dist
             - /var/www/.pnpm-store
 
-    sample-app-db-browser:
+    user-svc-db:
+        image: postgres:14.9
+        env_file: ../.env
+        environment:
+            PGDATA: /var/lib/postgresql/data/pgdata
+            POSTGRES_DB: ${DATABASE_NAME}
+            POSTGRES_USER: ${DATABASE_USER}
+            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+        ports:
+            - "8032:5432"
+        volumes:
+            - user-svc-db-data:/var/lib/postgresql/data/pgdata
+        networks:
+            - pulselink
+
+    user-svc-db-browser:
         image: dbgate/dbgate:latest
         env_file: ../.env
         environment:
@@ -34,4 +48,8 @@ services:
         ports:
             - "8031:3000"
         networks:
-            - sample-app
+            - pulselink
+
+
+volumes:
+    user-svc-db-data: {}

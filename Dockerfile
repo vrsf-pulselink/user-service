@@ -22,10 +22,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 ## Copy tools & configuration
 COPY --from=tools tools/ /bin/
-COPY docker/etc /etc/
+COPY container/etc /etc/
 
 ## Prepare Docker Entrypoints
-COPY docker/*-entrypoint.sh /usr/local/bin/
+COPY container/*-entrypoint.sh /usr/local/bin/
 
 ## Build cache
 COPY app/package.json app/pnpm-lock.yaml $DIR/
@@ -52,7 +52,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get -q update \
 ENV NODE_ENV development
 
 ## Prepare *-entrypoints
-COPY docker/*-entrypoint.sh /usr/local/bin/
+COPY container/*-entrypoint.sh /usr/local/bin/
 
 ## Run application and expose required ports
 ENTRYPOINT ["docker-entrypoint.sh"]
@@ -91,14 +91,14 @@ WORKDIR $DIR
 
 ## Copy tools & configuration
 COPY --from=alpine-tools tools/ /bin/
-COPY docker/etc /etc/
+COPY container/etc /etc/
 
 ## Copy application with required things
 COPY --from=builder --chown=node:node /var/www/dist $DIR/dist
 COPY --from=builder --chown=node:node /var/www/node_modules $DIR/node_modules
 
 ## Prepare entrypoints
-COPY docker/docker-entrypoint.sh /usr/local/bin/
+COPY container/docker-entrypoint.sh /usr/local/bin/
 
 ## Run application and expose required ports
 USER node

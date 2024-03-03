@@ -4,10 +4,7 @@ import { GetHealthcheckStatusUseCase } from "@app/context/healthcheck/use-case/g
 
 @Controller("_healthcheck")
 export class HealthcheckController {
-  constructor(
-    private readonly healthcheckStatus: GetHealthcheckStatusUseCase,
-  ) {
-  }
+  constructor(private readonly healthcheckStatus: GetHealthcheckStatusUseCase) {}
 
   @Get()
   public healthStatus(): HealthcheckStatus {
