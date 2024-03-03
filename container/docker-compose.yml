@@ -11,6 +11,4 @@ services:
             - pulselink
 
 networks:
-    pulselink:
-        name: pulselink
-        external: true
+    pulselink: {}
