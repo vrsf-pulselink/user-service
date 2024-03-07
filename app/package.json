@@ -1,10 +1,10 @@
 {
-    "name": "sample-app-api",
+    "name": "pulselink-user-service",
     "version": "1.0.0",
     "author": "Paweł Farys <pmg.farys@gmail.com>",
     "license": "UNLICENSED",
     "engines": {
-        "node": ">=18.0.0",
+        "node": ">=20.0.0",
         "pnpm": ">=8.0.0"
     },
     "bin": {

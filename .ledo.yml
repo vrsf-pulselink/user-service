@@ -6,6 +6,6 @@ container:
     main_service: user-svc-api
     shell: /bin/bash
 modes:
-    base: container/docker-compose.yml
-    dev: container/docker-compose.yml container/docker-compose.dev.yml
-    test: container/docker-compose.yml container/docker-compose.test.yml
+    base: docker/docker-compose.yml
+    dev: docker/docker-compose.yml docker/docker-compose.dev.yml
+    test: docker/docker-compose.yml docker/docker-compose.test.yml

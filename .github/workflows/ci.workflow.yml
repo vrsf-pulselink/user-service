@@ -1,4 +1,4 @@
-name: VRS-Factory CI
+name: VRS-Factory Docker CI
 
 on:
     workflow_dispatch:
@@ -21,13 +21,39 @@ env:
     TEST_REPORT_ARTIFACT: test-report-${{ github.sha }}
 
 jobs:
-    pack:
+
+    credentials:
         runs-on: ubuntu-latest
         container:
             image: vertisan/dind:latest
+        outputs:
+            CODEARTIFACT_AUTH_TOKEN: ${{ steps.export-tokens.outputs.CODEARTIFACT_AUTH_TOKEN }}
+        steps:
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_OIDC_CODE_ROLE_ARN }}
+                  role-session-name: github-pulselink-code
+                  aws-region: ${{ secrets.AWS_REGION }}
+
+            - name: Get token for CodeArtifact
+              id: export-tokens
+              run: |
+                  export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain ${{ secrets.AWS_CODEARTIFACT_DOMAIN }} --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --region ${{ secrets.AWS_REGION }} --query authorizationToken --output text --duration-seconds 900`
+                  if [ -z "$CODEARTIFACT_AUTH_TOKEN" ]; then echo "Cannot get auth token(s) for CI/CD"; exit 1; fi
+                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> $GITHUB_OUTPUT
+
+    pack:
+        needs: [credentials]
+        runs-on: ubuntu-latest
+        container:
+            image: vertisan/dind:latest
+        env:
+            CODEARTIFACT_AUTH_TOKEN: ${{ needs.credentials.outputs.CODEARTIFACT_AUTH_TOKEN }}
         steps:
             - name: Setup job
               run: |
+                  if [ -z "$CODEARTIFACT_AUTH_TOKEN" ]; then echo "The required envs are missing!"; exit 1; fi
                   echo "VERSION_PACK=pack.$(echo $SOURCE_BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
                   echo "VERSION_BRANCH=$(echo $SOURCE_BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
 
@@ -48,6 +74,7 @@ jobs:
               run: |
                   docker build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --build-arg CODEARTIFACT_AUTH_TOKEN=${CODEARTIFACT_AUTH_TOKEN} \
                     --cache-from ${{ env.REGISTRY_IMAGE }}:latest \
                     --target packer \
                     --pull -f ./Dockerfile -t ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_PACK }} .
@@ -57,14 +84,17 @@ jobs:
                   docker push ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_PACK }}
 
     test:
-        needs: [pack]
+        needs: [credentials, pack]
         runs-on: ubuntu-latest
         # TODO: Solve a problem with a missing directory from container
         # container:
         #   image: vertisan/dind:latest
+        env:
+            CODEARTIFACT_AUTH_TOKEN: ${{ needs.credentials.outputs.CODEARTIFACT_AUTH_TOKEN }}
         steps:
             - name: Setup job
               run: |
+                  if [ -z "$CODEARTIFACT_AUTH_TOKEN" ]; then echo "The required envs are missing!"; exit 1; fi
                   echo "VERSION_PACK=pack.$(echo $SOURCE_BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
                   echo "VERSION_BRANCH=$(echo $SOURCE_BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
 
@@ -84,12 +114,13 @@ jobs:
             - name: Setup tests
               run: |
                   cp .env.test .env || cp .env.dist .env || touch .env
+                  echo "CODEARTIFACT_AUTH_TOKEN=$CODEARTIFACT_AUTH_TOKEN" >> .env
                   docker tag ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_PACK }} ${{ env.REGISTRY_IMAGE }}:latest
 
             - name: Run tests
               run: |
-                  docker compose -f container/docker-compose.yml -f container/docker-compose.test.yml --env-file .env down --volumes --remove-orphans --rmi local
-                  docker compose -f container/docker-compose.yml -f container/docker-compose.test.yml --env-file .env up --force-recreate --renew-anon-volumes --abort-on-container-exit --exit-code-from user-svc-api
+                  docker compose -f docker/docker-compose.yml -f docker/docker-compose.test.yml --env-file .env down --volumes --remove-orphans --rmi local
+                  docker compose -f docker/docker-compose.yml -f docker/docker-compose.test.yml --env-file .env up --force-recreate --renew-anon-volumes --abort-on-container-exit --exit-code-from user-svc-api
 
             - name: Store tests results
               if: github.event_name == 'pull_request'
@@ -101,16 +132,19 @@ jobs:
 
             - name: Clean up
               run: |
-                  docker compose -f container/docker-compose.yml -f container/docker-compose.test.yml --env-file .env down --volumes --remove-orphans --rmi local
+                  docker compose -f docker/docker-compose.yml -f docker/docker-compose.test.yml --env-file .env down --volumes --remove-orphans --rmi local
 
     build:
-        needs: [test]
+        needs: [credentials, test]
         runs-on: ubuntu-latest
         container:
             image: vertisan/dind:latest
+        env:
+            CODEARTIFACT_AUTH_TOKEN: ${{ needs.credentials.outputs.CODEARTIFACT_AUTH_TOKEN }}
         steps:
             - name: Setup job
               run: |
+                  if [ -z "$CODEARTIFACT_AUTH_TOKEN" ]; then echo "The required envs are missing!"; exit 1; fi
                   echo "VERSION_PACK=pack.$(echo $SOURCE_BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
                   echo "VERSION_BRANCH=$(echo $SOURCE_BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
 

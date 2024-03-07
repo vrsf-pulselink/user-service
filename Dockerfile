@@ -9,11 +9,13 @@ FROM jazzypro/base-tools:alpine AS alpine-tools
 ##    P A C K E R
 ## ********************************************
 FROM node:${NODE_VERSION}-slim AS packer
+ARG CODEARTIFACT_AUTH_TOKEN
 
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV HUSKY=0
+ENV CODEARTIFACT_AUTH_TOKEN=${CODEARTIFACT_AUTH_TOKEN}
 ENV DIR /var/www
 WORKDIR $DIR
 
@@ -22,13 +24,13 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 ## Copy tools & configuration
 COPY --from=tools tools/ /bin/
-COPY container/etc /etc/
+COPY docker/etc /etc/
 
 ## Prepare Docker Entrypoints
-COPY container/*-entrypoint.sh /usr/local/bin/
+COPY docker/*-entrypoint.sh /usr/local/bin/
 
 ## Build cache
-COPY app/package.json app/pnpm-lock.yaml $DIR/
+COPY app/package.json app/pnpm-lock.yaml app/.npmrc $DIR/
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3 pnpm fetch
 
 ## Install dependencies
@@ -52,7 +54,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get -q update \
 ENV NODE_ENV development
 
 ## Prepare *-entrypoints
-COPY container/*-entrypoint.sh /usr/local/bin/
+COPY docker/*-entrypoint.sh /usr/local/bin/
 
 ## Run application and expose required ports
 ENTRYPOINT ["docker-entrypoint.sh"]
@@ -75,7 +77,7 @@ WORKDIR $DIR
 RUN pnpm build
 
 ## Reduce development dependencies
-RUN pnpm prune --prod
+RUN pnpm prune --prod && rm .npmrc
 
 
 ##    S E R V E R
@@ -91,14 +93,14 @@ WORKDIR $DIR
 
 ## Copy tools & configuration
 COPY --from=alpine-tools tools/ /bin/
-COPY container/etc /etc/
+COPY docker/etc /etc/
 
 ## Copy application with required things
 COPY --from=builder --chown=node:node /var/www/dist $DIR/dist
 COPY --from=builder --chown=node:node /var/www/node_modules $DIR/node_modules
 
 ## Prepare entrypoints
-COPY container/docker-entrypoint.sh /usr/local/bin/
+COPY docker/docker-entrypoint.sh /usr/local/bin/
 
 ## Run application and expose required ports
 USER node
