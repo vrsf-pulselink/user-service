@@ -1,11 +1,11 @@
 runtime: docker
-container:
-    registry: docker.io
-    namespace: vertisan
-    name: pulselink-user-service
-    main_service: user-svc-api
-    shell: /bin/bash
+docker:
+  registry: docker.io
+  namespace: vertisan
+  name: pulselink-user-service
+  main_service: user-svc-api
+  shell: /bin/bash
 modes:
-    base: docker/docker-compose.yml
-    dev: docker/docker-compose.yml docker/docker-compose.dev.yml
-    test: docker/docker-compose.yml docker/docker-compose.test.yml
+  base: docker/docker-compose.yml
+  dev: docker/docker-compose.yml docker/docker-compose.dev.yml
+  test: docker/docker-compose.yml docker/docker-compose.test.yml

@@ -15,7 +15,7 @@ if [ "${NODE_ENV}" != "production" ]; then
 fi
 
 # Run migrations
-#pnpm run t:m:r
+pnpm run t:m:r
 
 #################### End of init
 

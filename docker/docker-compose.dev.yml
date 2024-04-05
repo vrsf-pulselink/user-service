@@ -10,12 +10,13 @@ services:
         env_file: ../.env
         environment:
             - APP_ENV=dev
+            - APP_PORT=80
             - NODE_ENV=development
         ports:
             - "8030:80"
         volumes:
-            - $PWD/../app:/var/www
-            - ../container/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+            - ../app:/var/www
+            - ../docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
             - /var/www/node_modules
             - /var/www/.pnpm-store
 
@@ -27,8 +28,6 @@ services:
             POSTGRES_DB: ${DATABASE_NAME}
             POSTGRES_USER: ${DATABASE_USER}
             POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-        ports:
-            - "8032:5432"
         volumes:
             - user-svc-db-data:/var/lib/postgresql/data/pgdata
         networks:

@@ -38,4 +38,6 @@ async function bootstrap(): Promise<void> {
   await app.listen(port);
 }
 
-bootstrap();
+bootstrap().then(() => {
+  console.log(`Running on port ${port} ...`);
+});
