@@ -1,5 +1,0 @@
-# Sample APP [API]
-
-## xxx
-
-...
