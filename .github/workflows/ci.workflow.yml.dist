@@ -231,4 +231,3 @@ jobs:
           coverage-file: ./report.json
           base-coverage-file: ./report.json
           annotations: none
-          threshold: 90

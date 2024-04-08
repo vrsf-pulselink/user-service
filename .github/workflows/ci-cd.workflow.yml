@@ -1,0 +1,78 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: "Release branch"
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - "*"
+  release:
+    types:
+      - published
+
+env:
+  SOURCE_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+  VERSION_COMMIT: ${{ github.sha }}
+  REGISTRY_IMAGE: vertisan/pulselink-user-service
+  TEST_REPORT_ARTIFACT: test-report-${{ github.sha }}
+
+jobs:
+  credentials:
+    name: Credentials
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name
+        run: echo "Running Job Credentials"
+
+  pack:
+    name: Packer
+    needs: [credentials]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name
+        run: echo "Running Job Packer"
+
+  test:
+    name: Lint & Test
+    needs: [pack]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name
+        run: echo "Running Job test"
+
+  build:
+    name: Build
+    if: |
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.release_branch) ||
+      (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch)
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name
+        run: echo "Running Job build"
+
+  release:
+    name: Release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name
+        run: echo "Running Job release"
+
+  report:
+    name: Report test results
+    if: github.event_name == 'pull_request'
+    needs: [test]
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name
+        run: echo "Running Job report"
